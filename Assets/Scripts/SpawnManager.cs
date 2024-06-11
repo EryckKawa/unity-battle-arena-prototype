@@ -1,30 +1,54 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
-	[SerializeField] private GameObject enemyPrefab;
-	private float spawnRange = 9.0f;
-	// Start is called before the first frame update
-	void Start()
-	{
-		Instantiate(enemyPrefab, GenerateRandomPosition(), enemyPrefab.transform.rotation);
-	}
+    [SerializeField] private GameObject enemyPrefab;
+    [SerializeField] private GameObject powerUpPrefab;
+    [SerializeField] private int initialEnemyWave = 1;
+    [SerializeField] private float spawnRange = 9.0f;
 
-	// Update is called once per frame
-	void Update()
-	{
+    private int currentWave;
+    private int enemiesInGame;
 
-	}
-	
-	private Vector3 GenerateRandomPosition()
-	{
-		float randomXRange = Random.Range(-spawnRange, spawnRange);
-		float randomZRange = Random.Range(-spawnRange, spawnRange);
+    // Start is called before the first frame update
+    void Start()
+    {
+        currentWave = initialEnemyWave;
+        SpawnEnemyWave(currentWave);
+        SpawnPowerUp();
+    }
 
-		Vector3 spawnPos = new Vector3(randomXRange, 0, randomZRange);
+    // Update is called once per frame
+    void Update()
+    {
+        enemiesInGame = FindObjectsOfType<Enemy>().Length;
+        if (enemiesInGame == 0)
+        {
+            currentWave++;
+            SpawnEnemyWave(currentWave);
+            SpawnPowerUp();
+        }
+    }
 
-		return spawnPos;
-	}
+    private void SpawnEnemyWave(int enemiesToSpawn)
+    {
+        for (int i = 0; i < enemiesToSpawn; i++)
+        {
+            Instantiate(enemyPrefab, GenerateRandomPosition(), enemyPrefab.transform.rotation);
+        }
+    }
+
+    private void SpawnPowerUp()
+    {
+        Instantiate(powerUpPrefab, GenerateRandomPosition(), powerUpPrefab.transform.rotation);
+    }
+
+    private Vector3 GenerateRandomPosition()
+    {
+        float randomX = Random.Range(-spawnRange, spawnRange);
+        float randomZ = Random.Range(-spawnRange, spawnRange);
+
+        return new Vector3(randomX, 0, randomZ);
+    }
 }
