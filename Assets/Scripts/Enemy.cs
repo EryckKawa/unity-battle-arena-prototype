@@ -11,24 +11,12 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         enemyRigidbody = GetComponent<Rigidbody>();
-        if (enemyRigidbody == null)
-        {
-            Debug.LogError("Rigidbody component not found on Enemy object.");
-        }
-
         player = GameObject.FindGameObjectWithTag(PLAYER_TAG);
-        if (player == null)
-        {
-            Debug.LogError("Player object not found in the scene.");
-        }
     }
 
     void FixedUpdate()
     {
-        if (player != null)
-        {
-            MoveTowardsPlayer();
-        }
+        MoveTowardsPlayer();
 
         if (transform.position.y < -10)
         {

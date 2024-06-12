@@ -8,9 +8,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float moveSpeed = 10.0f;
     [SerializeField] private float powerUpForce = 10.0f;
     [SerializeField] private int powerUpDuration = 7;
+    [SerializeField] private GameObject rocketPrefab;
+    [SerializeField] private Transform rocketLaunchPoint;
 
     private Rigidbody playerRigidbody;
-    private bool hasPowerUp;
+    private PowerUpType currentPowerUp = PowerUpType.None;
 
     void Start()
     {
@@ -21,6 +23,11 @@ public class PlayerController : MonoBehaviour
     {
         MovePlayer();
         UpdatePowerUpIndicatorPosition();
+
+        if (currentPowerUp == PowerUpType.Rocket && Input.GetKeyDown(KeyCode.Space))
+        {
+            LaunchRocket();
+        }
     }
 
     void MovePlayer()
@@ -37,27 +44,23 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    public void ActivatePowerUp(PowerUpType powerUpType)
     {
-        if (other.CompareTag("PowerUp"))
-        {
-            hasPowerUp = true;
-            Destroy(other.gameObject);
-            powerUpIndicator.SetActive(true);
-            StartCoroutine(PowerUpTimer());
-        }
+        currentPowerUp = powerUpType;
+        powerUpIndicator.SetActive(true);
+        StartCoroutine(PowerUpTimer());
     }
 
     IEnumerator PowerUpTimer()
     {
         yield return new WaitForSeconds(powerUpDuration);
-        hasPowerUp = false;
+        currentPowerUp = PowerUpType.None;
         powerUpIndicator.SetActive(false);
     }
 
     void OnCollisionEnter(Collision other)
     {
-        if (other.gameObject.CompareTag("Enemy") && hasPowerUp)
+        if (other.gameObject.CompareTag("Enemy") && currentPowerUp == PowerUpType.Force)
         {
             Rigidbody enemyRigidbody = other.gameObject.GetComponent<Rigidbody>();
             if (enemyRigidbody != null)
@@ -65,6 +68,27 @@ public class PlayerController : MonoBehaviour
                 Vector3 awayFromPlayer = (other.transform.position - transform.position).normalized;
                 enemyRigidbody.AddForce(powerUpForce * awayFromPlayer, ForceMode.Impulse);
             }
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("PowerUp"))
+        {
+            PowerUp powerUp = other.GetComponent<PowerUp>();
+            if (powerUp != null)
+            {
+                ActivatePowerUp(powerUp.GetPowerUpType());
+                Destroy(other.gameObject);
+            }
+        }
+    }
+
+    private void LaunchRocket()
+    {
+        if (rocketPrefab != null && rocketLaunchPoint != null)
+        {
+			Instantiate(rocketPrefab, new Vector3(0, 1, 0) + transform.position, rocketLaunchPoint.rotation);
         }
     }
 }
